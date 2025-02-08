@@ -36,10 +36,7 @@ public class BggController {
         return ResponseEntity.ok().body(queryResult);
     }
 
-    @GetMapping
-    public ResponseEntity<Document> getOneGame(){
-        return ResponseEntity.ok().body(bggService.getOneGame());
-    }
+ 
 
 
 }
