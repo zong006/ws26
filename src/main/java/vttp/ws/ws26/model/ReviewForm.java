@@ -2,20 +2,20 @@ package vttp.ws.ws26.model;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 
 public class ReviewForm {
 
-    @NotEmpty(message = "Field cannot be left empty.")
+    @NotBlank(message = "Field cannot be left empty.")
     private String user;
 
-    @NotEmpty(message = "Field cannot be left empty.")
+    @NotBlank(message = "Field cannot be left empty.")
     private String comment;
 
-    @NotEmpty(message = "Field cannot be left empty.")
+    @NotBlank(message = "Field cannot be left empty.")
     private int gid;
 
-    @NotEmpty(message = "Field cannot be left empty.")
+    @NotBlank(message = "Field cannot be left empty.")
     @Min(value = 0, message = "Rating cannot be lower than 0.")
     @Max(value = 10, message = "Rating cannot be more than 10.")
     private int rating;
