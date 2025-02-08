@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import vttp.ws.ws26.model.Game;
+import vttp.ws.ws26.model.ReviewForm;
 import vttp.ws.ws26.repo.BggRepo;
 
 @Service
@@ -35,6 +36,16 @@ public class BggService {
         return results.getFirst();
     }
 
+    public void createNewReview(ReviewForm form){
+        Document review = new Document();
+        review.put("user", form.getUser());
+        review.put("rating", form.getRating());
+        review.put("c_text", form.getComment());
+        review.put("gid", form.getGid());
+
+        bggRepo.insertComment(review);
+    }
+
     private Document formatResult(List<Document> results, int limit, int offset){
 
         List<Game> games = new LinkedList<>();
@@ -57,5 +68,7 @@ public class BggService {
         queryResult.put("timestamp", timestamp);
         return queryResult;
     }   
+
+
 
 }
