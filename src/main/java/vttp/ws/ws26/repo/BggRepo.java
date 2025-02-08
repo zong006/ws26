@@ -2,8 +2,6 @@ package vttp.ws.ws26.repo;
 
 import java.util.List;
 
-import javax.print.Doc;
-
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -57,10 +55,4 @@ public class BggRepo {
         return results;
     }
 
-    public List<Document> getOneComment(){
-        Criteria criteria = Criteria.where(null);
-        Query query = Query.query(criteria).limit(1);
-        List<Document> results = mongoTemplate.find(query, Document.class, "games");
-        return results;
-    }
 }
