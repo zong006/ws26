@@ -36,6 +36,10 @@ public class BggService {
         return results.getFirst();
     }
 
+    public Document getOneGame(){
+        return bggRepo.getOneComment().getFirst();
+    }
+
     private Document formatResult(List<Document> results, int limit, int offset){
 
         
