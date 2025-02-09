@@ -1,6 +1,8 @@
 package vttp.ws.ws26.controller;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,4 +69,36 @@ public class BggController {
     }
 
 
+    @GetMapping("/{gameId}/reviews")
+    public ResponseEntity<Document> getGameWithComments(@PathVariable int gameId) throws NumberFormatException, Exception{
+        List<Document> results = bggService.getGameWithComments(gameId);
+        if (results.size()==1){
+            // System.out.println("size: " + opt.get().size());
+            return ResponseEntity.ok().body(results.getFirst());
+        }
+
+        Document error = new Document();
+        error.put("message", "Invalid game id..");
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @GetMapping("/{highOrLow}")
+    public ResponseEntity<List<Document>> getGamesWithHighestOrLowestRating(@PathVariable String highOrLow){
+        boolean fromHighest;
+        if (highOrLow.toLowerCase().equals("highest")){
+            fromHighest = true;
+        }
+        else if (highOrLow.toLowerCase().equals("lowest")){
+            fromHighest = false;
+        }
+        else {
+            Document error = new Document();
+            error.put("message", "indicate either highest or lowest..");
+            return ResponseEntity.badRequest().body(Arrays.asList(error));
+        }
+
+        List<Document> results = bggService.getGamesWithHighestOrLowestRating(fromHighest);
+
+        return ResponseEntity.ok().body(results);
+    }
 }

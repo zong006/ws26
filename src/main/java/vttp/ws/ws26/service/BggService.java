@@ -129,4 +129,13 @@ public class BggService {
         throw new Exception("Unable to retrieve documents..");
     }
 
+    public List<Document> getGameWithComments(int gameId){
+        List<Document> results = bggRepo.getGameWithComments(gameId);
+        return results;
+    }
+
+    public List<Document> getGamesWithHighestOrLowestRating(boolean fromHighest){
+        return bggRepo.getGamesWithHighestOrLowestRating(fromHighest);
+    }
+
 }

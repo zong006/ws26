@@ -14,9 +14,11 @@ import org.springframework.data.mongodb.core.aggregation.AddFieldsOperation;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.LimitOperation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
+import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -38,7 +40,7 @@ public class BggRepo {
     public List<Document> getGames(int limit, int offset){
         Criteria criteria = Criteria.where(null);
         Query query = Query.query(criteria).limit(limit).skip(offset);
-        List<Document> results = mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME);
+        List<Document> results = mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME_GAMES);
 
         return results;
     }
@@ -52,7 +54,7 @@ public class BggRepo {
         Criteria criteria = Criteria.where(null);
         Query query = Query.query(criteria).with(Sort.by(Sort.Direction.ASC, MongoConstants.MONGO_BGG_RANKING)).limit(limit).skip(offset);
 
-        List<Document> results = mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME);
+        List<Document> results = mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME_GAMES);
         return results;
     }
 
@@ -65,7 +67,7 @@ public class BggRepo {
     public List<Document> getGameById(Integer gameId){
         Criteria criteria = Criteria.where("gid").is(gameId);
         Query query = Query.query(criteria);
-        List<Document> results = mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME);
+        List<Document> results = mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME_GAMES);
         return results;
     }
 
@@ -232,6 +234,103 @@ public class BggRepo {
         Query query = Query.query(criteria);
         Optional<List<Document>> opt = Optional.ofNullable(mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME_REVIEWS));
         return opt;
+    }
+
+    /*
+        db.games.aggregate([
+            {
+                $match: {
+                    "gid":32
+                }
+            },
+            {
+                $lookup: {
+                    from: "comment",
+                    localField: "gid",
+                    foreignField: "gid",
+                    as: "reviews"
+                }
+            }
+        ])
+    */ 
+
+    public List<Document> getGameWithComments(int gameId){
+        MatchOperation matchGameId = Aggregation.match(Criteria.where("gid").is(gameId));
+        LookupOperation lookupOperation = Aggregation.lookup(MongoConstants.MONGO_BGG_C_NAME_COMMENT,
+                                                                "gid",
+                                                                 "gid",
+                                                                  "reviews");
+        Aggregation pipeline = Aggregation.newAggregation(matchGameId, lookupOperation);
+
+        List<Document> results = mongoTemplate.aggregate(pipeline, MongoConstants.MONGO_BGG_C_NAME_GAMES, Document.class)
+                                                                    .getMappedResults();
+
+        return results;                                                           
+    }
+
+    /*
+        db.games.aggregate([
+            {
+                $lookup: {
+                    from: "comment",
+                    localField: "gid",
+                    foreignField: "gid",
+                    pipeline: [
+                        {
+                            $sort:{
+                                "rating":-1  <<----- change to 1 for lowest rating
+                            }
+                        },
+                        {
+                            $limit :1
+                        }
+                    ],
+                    as: "reviews"
+                }
+            },
+            {
+                $unwind : "$reviews"
+            },
+            {
+                $project :{
+                    "_id":"$gid",
+                    "name":1,
+                    rating : "$reviews.rating",
+                    user : "$reviews.user",
+                    comment : "$reviews.c_text",
+                    review_id : "$reviews._id"
+                }
+            }
+        ])
+    */ 
+
+    public List<Document> getGamesWithHighestOrLowestRating(boolean fromHighest){
+
+        SortOperation sortOperation;
+        if (fromHighest){
+            sortOperation = Aggregation.sort(Direction.DESC,"rating");
+        }
+        else{
+            sortOperation = Aggregation.sort(Direction.ASC, "rating");
+        }
+        LimitOperation limitOne = Aggregation.limit(1);
+
+        LookupOperation lookupOperation = LookupOperation.newLookup().from(MongoConstants.MONGO_BGG_C_NAME_COMMENT)
+                                                                    .localField("gid")
+                                                                    .foreignField("gid")
+                                                                    .pipeline(sortOperation, limitOne)
+                                                                    .as("reviews");
+        UnwindOperation unwindReviews = Aggregation.unwind("reviews");
+        ProjectionOperation projectionOperation = Aggregation.project("name")
+                                                            .and("reviews.rating").as("rating")
+                                                            .and("reviews.user").as("user")
+                                                            .and("reviews.c_text").as("comment")
+                                                            .and("reviews._id").as("reviews_id")
+                                                            .and("gid").as("_id");
+
+        Aggregation pipeline = Aggregation.newAggregation(lookupOperation, unwindReviews, projectionOperation);
+        List<Document> results = mongoTemplate.aggregate(pipeline, MongoConstants.MONGO_BGG_C_NAME_GAMES, Document.class).getMappedResults();                
+        return results;
     }
 
 }
