@@ -4,6 +4,9 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,7 +37,25 @@ public class BggController {
         return ResponseEntity.ok().body(queryResult);
     }
 
- 
+    @PutMapping("/review/{reviewId}")
+    public ResponseEntity<Boolean> updateReview(@PathVariable String reviewId, @RequestBody Document update){
+        // check if reviewId exists
+        boolean reviewExists = bggService.updateReview(reviewId, update);
+
+        return ResponseEntity.ok().body(reviewExists);
+    }
+
+    @GetMapping("/review/{reviewId}")
+    public ResponseEntity<Document> getLatestReview(@PathVariable String reviewId) throws Exception{
+        Document result = bggService.getLatestReview(reviewId);
+
+        return ResponseEntity.ok().body(result);
+    }
+
+    // @GetMapping("/review/{reviewId}/history")
+    // public ResponseEntity<Document> getReviewHistory(String reviewId){
+        
+    // }
 
 
 }

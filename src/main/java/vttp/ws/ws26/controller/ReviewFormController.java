@@ -1,6 +1,10 @@
 package vttp.ws.ws26.controller;
 
+import java.text.ParseException;
+import java.util.List;
+
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,19 +32,22 @@ public class ReviewFormController {
     }
 
     @PostMapping("/add")
-    public String submitForm(@Valid @ModelAttribute(value="reviewForm") ReviewForm form, BindingResult bindingResult, Model model){
+    public String submitForm(@Valid @ModelAttribute(value="reviewForm") ReviewForm form, BindingResult bindingResult, Model model) throws ParseException{
         if (bindingResult.hasErrors()){
             return "review_form";
         }
-        Document game = bggService.getGameById(form.getGid());
-        if (game==null){
-            System.out.println("Invalid Game Id..");
+        System.out.println(form.getGid());
+        List<Document> games = bggService.getGameById(form.getGid());
+        if (games.size()==0){
+            model.addAttribute("errorMessage", "Invalid Game Id..");
+            
+            return "error_page";
         }
         else {
-            System.out.println(form);
+            bggService.createNewReview(form);
+            // System.out.println();
+            
         }
-        
-
         return "home";
     }
 }

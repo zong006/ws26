@@ -1,10 +1,15 @@
 package vttp.ws.ws26.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,19 +36,38 @@ public class BggService {
         return queryResults;
     }
 
-    public Document getGameById(int gameId){
+    public List<Document> getGameById(Integer gameId){
         List<Document> results = bggRepo.getGameById(gameId);
-        return results.getFirst();
+        return results;
     }
 
-    public void createNewReview(ReviewForm form){
+    public ObjectId createNewReview(ReviewForm form) throws ParseException{
+        int gid = form.getGid();
+        String name = getGameById(gid).getFirst().getString("name");
+        
         Document review = new Document();
+        
+        review.put("review_id", UUID.randomUUID().toString().substring(0, 8));
         review.put("user", form.getUser());
         review.put("rating", form.getRating());
-        review.put("c_text", form.getComment());
-        review.put("gid", form.getGid());
+        review.put("comment", form.getComment());
+        review.put("posted", new Date());
+        review.put("gid", gid);
+        review.put("name", name);
 
-        bggRepo.insertComment(review);
+        ObjectId id = bggRepo.insertComment(review);
+
+        return id;
+    }
+
+    public boolean updateReview(String reviewId, Document updates){
+        List<Document> reviews = bggRepo.getReviewById(reviewId);
+        if (reviews.size()==1){
+            updates.put("timestamp", new Date());
+            long updateCount = bggRepo.updateReview(reviewId, updates);
+            return updateCount==1;
+        }
+        return false;
     }
 
     private Document formatResult(List<Document> results, int limit, int offset){
@@ -69,6 +93,32 @@ public class BggService {
         return queryResult;
     }   
 
+    public Document getLatestReview(String reviewId) throws Exception{
+        Optional<Document> opt =  bggRepo.showLatestReview(reviewId);
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        String dateString = sdf.format(date);
 
+        if (opt.isPresent()){
+            Document result = opt.get();
+        
+            if (!result.containsKey("edited")){
+                result.put("edited", false);
+            }
+
+            result.put("timestamp", dateString);
+            return result;
+        }
+        throw new Exception("Review id does not exist..");
+    }
+
+    public Document getReviewHistory(String reviewId) throws Exception{
+        Optional<Document> opt = bggRepo.getReviewHistory(reviewId);
+        if (opt.isPresent()){
+            return opt.get();
+        }
+        
+        throw new Exception("Review id does not exist..");
+    }
 
 }

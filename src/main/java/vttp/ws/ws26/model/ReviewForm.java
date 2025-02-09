@@ -3,6 +3,7 @@ package vttp.ws.ws26.model;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class ReviewForm {
 
@@ -12,18 +13,18 @@ public class ReviewForm {
     @NotBlank(message = "Field cannot be left empty.")
     private String comment;
 
-    @NotBlank(message = "Field cannot be left empty.")
-    private int gid;
+    // @NotNull(message = "Field cannot be left empty.")
+    private Integer gid;
 
-    @NotBlank(message = "Field cannot be left empty.")
+    // @NotNull(message = "Field cannot be left empty.")
     @Min(value = 0, message = "Rating cannot be lower than 0.")
     @Max(value = 10, message = "Rating cannot be more than 10.")
-    private int rating;
+    private Integer rating;
     
-    public int getRating() {
+    public Integer getRating() {
         return rating;
     }
-    public void setRating(int rating) {
+    public void setRating(Integer rating) {
         this.rating = rating;
     }
     public String getUser() {
@@ -38,10 +39,10 @@ public class ReviewForm {
     public void setComment(String comment) {
         this.comment = comment;
     }
-    public int getGid() {
+    public Integer getGid() {
         return gid;
     }
-    public void setGid(int gid) {
+    public void setGid(Integer gid) {
         this.gid = gid;
     }
     @Override
