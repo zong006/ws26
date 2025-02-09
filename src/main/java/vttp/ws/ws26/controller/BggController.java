@@ -1,5 +1,7 @@
 package vttp.ws.ws26.controller;
 
+import java.util.List;
+
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +41,7 @@ public class BggController {
 
     @PutMapping("/review/{reviewId}")
     public ResponseEntity<Boolean> updateReview(@PathVariable String reviewId, @RequestBody Document update){
-        // check if reviewId exists
+
         boolean reviewExists = bggService.updateReview(reviewId, update);
 
         return ResponseEntity.ok().body(reviewExists);
@@ -52,10 +54,17 @@ public class BggController {
         return ResponseEntity.ok().body(result);
     }
 
-    // @GetMapping("/review/{reviewId}/history")
-    // public ResponseEntity<Document> getReviewHistory(String reviewId){
-        
-    // }
+    @GetMapping("/review/{reviewId}/history")
+    public ResponseEntity<Document> getReviewHistory(String reviewId) throws Exception{
+     Document result = bggService.getReviewHistory(reviewId);
+     return ResponseEntity.ok().body(result);
+    }
+
+    @GetMapping("/review/get")
+    public ResponseEntity<List<Document>> getAllReviews() throws Exception{
+        List<Document> reviews = bggService.getAllReviews();
+        return ResponseEntity.ok().body(reviews);
+    }
 
 
 }

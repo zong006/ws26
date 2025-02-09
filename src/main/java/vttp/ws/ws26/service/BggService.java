@@ -121,4 +121,12 @@ public class BggService {
         throw new Exception("Review id does not exist..");
     }
 
+    public List<Document> getAllReviews() throws Exception{
+        Optional<List<Document>> opt = bggRepo.getAllReviews();
+        if (opt.isPresent()){
+            return opt.get();
+        }
+        throw new Exception("Unable to retrieve documents..");
+    }
+
 }

@@ -1,5 +1,6 @@
 package vttp.ws.ws26.repo;
 
+import java.lang.classfile.ClassFile.Option;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -226,6 +227,13 @@ public class BggRepo {
         Criteria criteria = Criteria.where("review_id").is(reviewId);
         Query query = Query.query(criteria);
         Optional<Document> opt =  Optional.ofNullable(mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME_REVIEWS).getFirst());
+        return opt;
+    }
+
+    public Optional<List<Document>> getAllReviews(){
+        Criteria criteria = Criteria.where(null);
+        Query query = Query.query(criteria);
+        Optional<List<Document>> opt = Optional.ofNullable(mongoTemplate.find(query, Document.class, MongoConstants.MONGO_BGG_C_NAME_REVIEWS));
         return opt;
     }
 
